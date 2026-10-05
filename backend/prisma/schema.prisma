@@ -48,3 +48,20 @@ model LedgerEntry {
   @@index([walletId, createdAt])
   @@map("ledger_entries")
 }
+
+model Bet {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  currency      String
+  gameType      String   @map("game_type") // e.g., "slots", "dice", "crash"
+  wager         Decimal  @db.Decimal(38, 18)
+  payout        Decimal  @db.Decimal(38, 18)
+  profit        Decimal  @db.Decimal(38, 18) // payout - wager (can be negative)
+  outcome       String   // "WIN", "LOSS", or "PUSH"
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([userId, createdAt])
+  @@index([userId, outcome])
+  @@map("bets")
+}
+
