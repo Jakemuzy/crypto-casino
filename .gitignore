@@ -1,3 +1,4 @@
 .env
-logto.ts
+#logto.ts
 src/generated
+node_modules/
