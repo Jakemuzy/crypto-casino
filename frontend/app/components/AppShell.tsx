@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // Placeholder brand. Swap for your real name / logo.
 const BRAND = "Highroll";
@@ -88,9 +90,9 @@ function UserIcon() {
 }
 
 const sideItems = [
-  { label: "Dashboard", icon: <DashboardIcon /> },
-  { label: "Games", icon: <DiceIcon /> },
-  { label: "Wallet", icon: <WalletIcon /> },
+  { label: "Dashboard", href: "/", icon: <DashboardIcon /> },
+  { label: "Games", href: "/games", icon: <DiceIcon /> }, // /games doesn't exist yet
+  { label: "Wallet", href: "/wallet", icon: <WalletIcon /> },
 ];
 
 const accountItems = ["Profile", "Security", "Transaction history"];
@@ -105,8 +107,8 @@ export default function AppShell({
   isAuthenticated: boolean;
   displayName?: string;
   accountAction: React.ReactNode;
-}) {  
-  const [activeItem, setActiveItem] = useState("Dashboard");
+}) {
+  const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -141,7 +143,7 @@ export default function AppShell({
   return (
     <>
       {/* Top bar */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[#C9A45C]/20 bg-[#0B1F1A]/95 px-3 text-[#F2EBDD] backdrop-blur sm:px-5">
+      <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[#C9A45C]/20 bg-[#0B1F1A]/95 px-3 text-[#F2EBDD] backdrop-blur sm:px-5">
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -246,15 +248,13 @@ export default function AppShell({
       >
         <nav className="flex flex-col gap-1">
           {sideItems.map((item) => {
-            const isActive = activeItem === item.label;
+            const isActive =
+              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
-              <button
+              <Link
                 key={item.label}
-                type="button"
-                onClick={() => {
-                  setActiveItem(item.label);
-                  setDrawerOpen(false);
-                }}
+                href={item.href}
+                onClick={() => setDrawerOpen(false)}
                 aria-current={isActive ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-lg px-3 py-3 text-left text-[15px] font-medium transition-colors ${focusRing} ${
                   isActive
@@ -264,7 +264,7 @@ export default function AppShell({
               >
                 {item.icon}
                 {item.label}
-              </button>
+              </Link>
             );
           })}
         </nav>
