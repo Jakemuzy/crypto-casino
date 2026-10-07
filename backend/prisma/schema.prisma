@@ -3,18 +3,24 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator frontend {
+  provider = "prisma-client"
+  output   = "../../frontend/lib/generated/prisma"
+}
+
 datasource db {
   provider = "postgresql"
 }
 
 model User {
-  id          String    @id @default(uuid()) @db.Uuid
-  logtoSub    String    @unique @map("logto_sub")
-  status      String    @default("active")
-  kycLevel    Int       @default(0) @map("kyc_level") @db.SmallInt
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  lastLoginAt DateTime? @map("last_login_at") @db.Timestamptz
-  wallets     Wallet[]
+  id           String        @id @default(uuid()) @db.Uuid
+  logtoSub     String        @unique @map("logto_sub")
+  status       String        @default("active")
+  kycLevel     Int           @default(0) @map("kyc_level") @db.SmallInt
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  lastLoginAt  DateTime?     @map("last_login_at") @db.Timestamptz
+  wallets      Wallet[]
+  transactions Transaction[]
 
   @@map("users")
 }
@@ -28,6 +34,7 @@ model Wallet {
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz
   user          User          @relation(fields: [userId], references: [id])
   entries       LedgerEntry[]
+  transactions  Transaction[]
 
   @@unique([userId, currency])
   @@map("wallets")
@@ -49,19 +56,37 @@ model LedgerEntry {
   @@map("ledger_entries")
 }
 
+model Transaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  walletId  BigInt   @map("wallet_id")
+  type      String   // "DEPOSIT" | "WITHDRAWAL"
+  amount    Decimal  @db.Decimal(38, 18)
+  fee       Decimal  @default(0) @db.Decimal(38, 18)
+  address   String?  // destination address for withdrawals
+  status    String   @default("PENDING") // "PENDING" | "COMPLETED" | "FAILED"
+  txHash    String?  @map("tx_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id])
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([walletId, createdAt])
+  @@map("transactions")
+}
+
 model Bet {
-  id            String   @id @default(uuid()) @db.Uuid
-  userId        String   @map("user_id") @db.Uuid
-  currency      String
-  gameType      String   @map("game_type") // e.g., "slots", "dice", "crash"
-  wager         Decimal  @db.Decimal(38, 18)
-  payout        Decimal  @db.Decimal(38, 18)
-  profit        Decimal  @db.Decimal(38, 18) // payout - wager (can be negative)
-  outcome       String   // "WIN", "LOSS", or "PUSH"
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  currency  String
+  gameType  String   @map("game_type") // e.g., "slots", "dice", "crash"
+  wager     Decimal  @db.Decimal(38, 18)
+  payout    Decimal  @db.Decimal(38, 18)
+  profit    Decimal  @db.Decimal(38, 18) // payout - wager (can be negative)
+  outcome   String   // "WIN", "LOSS", or "PUSH"
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@index([userId, createdAt])
   @@index([userId, outcome])
   @@map("bets")
 }
-

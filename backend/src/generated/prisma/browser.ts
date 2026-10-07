@@ -32,3 +32,13 @@ export type Wallet = Prisma.WalletModel
  * 
  */
 export type LedgerEntry = Prisma.LedgerEntryModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel
+/**
+ * Model Bet
+ * 
+ */
+export type Bet = Prisma.BetModel
